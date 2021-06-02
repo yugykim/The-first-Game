@@ -30,12 +30,6 @@ class Snake:
         self.y += 10
         self.draw()
 
-class  Game:
-    def __init__(self):
-        pygame.init()
-        self.surface = pygame.display.set_mode((1000, 1000))   
-        self.snake = Snake(self.surface)
-        self.snake.draw()  
 
     def run(self):
         running = True
