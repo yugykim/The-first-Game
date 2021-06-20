@@ -1,69 +1,128 @@
 import pygame
 from pygame.locals import *
 
-class Game:
-    def __init__(self):
-        pygame.init()
-        self.surface = pygame.display.set_mode((550, 550))
-        self.block = pygame.image.load("resources/ghost.png").convert()
-        self.block = pygame.transform.scale(self.block,(30, 30))
-        self.back = pygame.image.load("resources/sky.jpg").convert()
-        self.back = pygame.transform.scale(self.back,(550, 550))
-        self.wall = pygame.image.load("resources/wall.png").convert()
-        self.wall = pygame.transform.scale(self.wall,(150, 30))
-        self.over = pygame.image.load("resources/game-over.png").convert()
-        self.over = pygame.transform.scale(self.over,(550, 550))
-        self.block_over = pygame.image.load("resources/brickwall.png").convert()
-        self.block_over = pygame.transform.scale(self.block_over,(30, 30))
-        self.x = 0
-        self.y = 0
-        self.x_lo = [0, 50, 200, 400, 400]
-        self.y_lo = [100, 130, 250, 280, 300, 350, 400]
-    
-    def draw(self, x_change, y_change):
-        self.x_change = x_change
-        self.y_change = y_change
-        self.x += self.x_change
-        self.y += self.y_change
-        self.surface.blit(self.block, (self.x, self.y))
+
+pygame.init()
+
+screen_width = 800
+screen_height = 800
+
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption('first game')
+
+# define  game variables
+tile_size = 50
+
+ 
+#image
+bg_img = pygame.image.load('resources/sky.jpg')
+
+def draw_grid():
+    for line in range(0, 16):
+        pygame.draw.line(screen, (255, 255, 255), (0, line * tile_size), (screen_width, line * tile_size))
+        pygame.draw.line(screen, (255, 255, 255), (line * tile_size, 0), (line * tile_size, screen_height))
+
+class Player():
+    def __init__(self, x, y):
+        img = pygame.image.load('resources/ghost.png')
+        self.image = pygame.transform.scale(img, (40, 40))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self):
+        dx = 0
+        dy = 0
+        #get keypresses
+        key = pygame.key.get_pressed()
+        if key[pygame.K_LEFT]:
+            dx -= 1
+        if key[pygame.K_RIGHT]:
+            dx += 1
+        if key[pygame.K_UP]:
+            dy -= 1
+        if key[pygame.K_DOWN]:
+            dy += 1
+        
+        #check for collision
+
+        # update player coordinates
+        self.rect.x += dx
+        self.rect.y += dy    
+        # draw player onto screen
+        screen.blit(self.image, self.rect)
+
+#calculate new player position and check collison new position adjust player position. 
+
+class World():
+    def __init__(self, data):
+        self.tile_list = []
+
+
+        #load images
+        dirt_img = pygame.image.load('resources/wall.png')
+        
+        row_count = 0
+        for row in data:
+            col_count = 0
+            for tile in row:
+                if tile == 1:
+                    img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
+                    img_rect = img.get_rect()
+                    img_rect.x = col_count * tile_size
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect)
+                    self.tile_list.append(tile) # store useful tile information
+                col_count += 1
+            row_count += 1 
+
+    def draw(self):
+        for tile in self.tile_list:
+            screen.blit(tile[0], tile[1])   
+
+
+#rectangle 
+world_data = [
+[1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+[0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
+[0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+[1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+[1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1],
+[1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1],
+[1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+[0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1],
+[0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1],
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+[0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0],
+[1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1],
+[0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
+[0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+]
+
+
+player = Player(0, tile_size)
+world = World(world_data)
+
+running = True
+
+while running:
+
+    screen.blit(bg_img, (0,  0))
+
+    draw_grid()
+
+    print(world.tile_list)
+    world.draw()
+    player.update()        
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+                    running = False
+            
         pygame.display.update()
 
     
-    def wall_im(self):
-        self.surface.blit(self.wall, (0, 100))
-        self.surface.blit(self.wall, (400, 200))
-        self.surface.blit(self.wall, (200, 130))
-        self.surface.blit(self.wall, (0, 250))
-        self.surface.blit(self.wall, (400, 280))
-        self.surface.blit(self.wall, (50, 300))
-        self.surface.blit(self.wall, (300, 350))
-        self.surface.blit(self.wall, (200, 400))
 
-    def run(self):
-        running = True
-        while running:
-            self.surface.fill((0,0,0))
-            self.surface.blit(self.back, (0, 0))
-            self.surface.blit(self.block, (self.x, self.y))
-            self.surface.blit(self.block_over, (510, 510))
-            self.wall_im()
-            for event in pygame.event.get():
-                if event.type == KEYDOWN:
-                    if event.key == K_UP:
-                        self.draw(0, -10)
-                    elif event.key == K_DOWN:
-                        self.draw(0, 10)
-                    elif event.key == K_LEFT:
-                        self.draw(-10, 0)
-                    elif event.key == K_RIGHT:
-                        self.draw(10, 0)             
-                    elif event.key == K_ESCAPE:
-                        running = False
-                elif event.type == QUIT:
-                    running = False
-            pygame.display.update()
-        pygame.quit()
-        
-if __name__ == '__main__':
-    game = Game()
-    game.run()
+
+
