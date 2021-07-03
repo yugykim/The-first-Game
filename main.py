@@ -25,32 +25,53 @@ def draw_grid():
 class Player():
     def __init__(self, x, y):
         img = pygame.image.load('resources/ghost.png')
-        self.image = pygame.transform.scale(img, (40, 40))
+        self.image = pygame.transform.scale(img, (45, 45))
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = x + 50
+        self.rect.y = y + 50
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
 
     def update(self):
         dx = 0
         dy = 0
+        downY = 0
+        downX = 0
         #get keypresses
         key = pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
             dx -= 1
+            downX -= 1
         if key[pygame.K_RIGHT]:
             dx += 1
         if key[pygame.K_UP]:
             dy -= 1
+            downY -= 1
         if key[pygame.K_DOWN]:
             dy += 1
         
         #check for collision
+        for tile in world.tile_list:
+            #check for collision in y direction
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y + dy, self.width, self.height):
+                if downY < 0:
+                    dy = tile[1].bottom - self.rect.top 
+                if dy > 0:
+                    dy = tile[1].top - self.rect.bottom 
+                if downX < 0:
+                    dx = tile[1].right - self.rect.left
+                if dx > 0:
+                    dx = tile[1].left - self.rect.right
+            #collision for edges of the screen
+
+
 
         # update player coordinates
         self.rect.x += dx
         self.rect.y += dy    
         # draw player onto screen
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
 #calculate new player position and check collison new position adjust player position. 
 
@@ -78,27 +99,28 @@ class World():
 
     def draw(self):
         for tile in self.tile_list:
-            screen.blit(tile[0], tile[1])   
+            screen.blit(tile[0], tile[1])  
+            pygame.draw.rect(screen, (255, 255, 255), tile[1], 2) 
 
 
 #rectangle 
 world_data = [
-[1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-[0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
-[0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+[1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1],
+[1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
 [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
 [1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1],
 [1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1],
-[1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-[0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1],
-[0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1],
-[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-[0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0],
-[1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1],
-[0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
-[0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+[1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1],
+[1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1],
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+[1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+[1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1],
+[1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1]
 ]
 
 
